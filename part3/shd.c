@@ -32,9 +32,9 @@
 #include "defines.h"
 #include "exception.h"
 
-#ifndef PART3_RUN_EXCEPTION_TEST
+/* 0 = normal Part 3 fuzz; set to 1 only while debugging exception_test.s */
+#undef PART3_RUN_EXCEPTION_TEST
 #define PART3_RUN_EXCEPTION_TEST 0
-#endif
 
 extern void exec_custom_insn(uint32_t insn);
 extern void fuzz_exec_tail_init(void);
@@ -90,19 +90,24 @@ void shd_main(void) {
     printf("|      Part 3      |\n");
     printf("+------------------+\n");
 
+    /* Keep handler quiet during exception_test to avoid noisy printf deep stacks. */
+    exception_handler_set_verbose(0);
+
 #if PART3_RUN_EXCEPTION_TEST
     printf("Sanity-check: exception_test (will not return).\n");
     exception_test();
 #endif
-
-    exception_handler_set_verbose(0);
 
     printf(
         "Scanning custom-0 encodings (secret 0..65535). Verilator-style sims are slow; "
         "this phase often takes tens of minutes to hours.\n"
     );
 
-    printf("[part3] sweep start — if nothing appears below, simulator is stuck before first insn.\n");
+    printf("[part3] sweep start.\n");
+    printf(
+        "[part3] NOTE: The next log line appears only after trial 0 completes (one trap + handler). "
+        "On Verilator/WSL that often means many minutes to hours of silence — normal, not a freeze.\n"
+    );
 
     fuzz_exec_tail_init();
 
@@ -112,7 +117,7 @@ void shd_main(void) {
 
     for (uint32_t s = 0; s <= 65535u; s++) {
         if (s == 0) {
-            printf("[part3] running first custom-0 probe (slow on Verilator/WSL).\n");
+            printf("[part3] trial 0: executing first custom-0 insn on simulator...\n");
         }
 
         asm volatile("" ::: "memory");

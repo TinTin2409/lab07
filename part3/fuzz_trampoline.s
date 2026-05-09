@@ -26,6 +26,12 @@ fuzz_exec_tail_init:
 exec_custom_insn:
     la t0, insn_buffer
     sw a0, 0(t0)
+    /* Lab note: SMC / I$ coherency — flush pipe before fetching from insn_buffer */
+    nop
+    nop
+    nop
+    nop
+    nop
     la ra, 1f
     jalr x0, t0, 0
 1:

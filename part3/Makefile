@@ -52,12 +52,13 @@ DEPS := $(OBJS:.o=.d)
 print-%  : ; @echo $* = $($*)
 
 # EXTRA_CFLAGS only for C/asm_offsets (e.g. -DPART3_TRAP_TRACE). Assembly .s must not get stray -D to avoid assembler issues.
-BASE_CFLAGS := -g -march=rv32i -mabi=ilp32 -ffreestanding -nostdlib -fno-plt -fno-pic -MMD -O0 -c
+# GCC 13+ treats CSR instructions as requiring the zicsr extension (not implied by rv32i alone).
+BASE_CFLAGS := -g -march=rv32i_zicsr -mabi=ilp32 -ffreestanding -nostdlib -fno-plt -fno-pic -MMD -O0 -c
 EXTRA_CFLAGS ?=
 CFLAGS := $(BASE_CFLAGS) $(EXTRA_CFLAGS)
 CXXFLAGS := $(CFLAGS)
 ASFLAGS  := $(BASE_CFLAGS)
-LDFLAGS1 := -g -march=rv32i -mabi=ilp32 -ffreestanding -nostdlib -fno-plt -fno-pic
+LDFLAGS1 := -g -march=rv32i_zicsr -mabi=ilp32 -ffreestanding -nostdlib -fno-plt -fno-pic
 LDFLAGS2 := -O0 -static-libgcc -lgcc
 
 $(TARGET_MEM): $(TARGET_BIN)

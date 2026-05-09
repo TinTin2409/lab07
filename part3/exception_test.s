@@ -28,7 +28,6 @@
 
 .include "defines_asm.h"
 
-.section .text
 .global exception_test
 .global _exception_test_fail
 
@@ -42,14 +41,18 @@
  */
 
 /*
- * CSR_UNUSED_BY_OS
- * Some unused CSR that isn't one of the defined ones, we expect
- * students not to change it as part of their exception handlers
- * so we can use it for testing them.
- *
- * This is just a random number.
+ * CSR 0x041 is assigned to uEPC in canonical RISC-V; trap entry may overwrite it.
+ * Persist test scratch values in memory so the PSP trap behavior cannot clobber them.
  */
-.set CSR_UNUSED_BY_OS, 0x041
+
+.section .bss
+.align 2
+exception_test_saved_sp:
+    .word 0
+exception_test_magic_x1:
+    .word 0
+
+.section .text
 
 /*
  * void exception_test(void)
@@ -69,8 +72,10 @@ exception_test:
     # Set all registers (except for stack) to obvious values:
     la x1,  0x11111111
     # Stack pointer should always point to valid memory, so don't set it here!
-    csrw CSR_UNUSED_BY_OS, sp # Instead, save the stack pointer
-                              # in a random CSR we assume nobody else uses.
+    la t6, exception_test_saved_sp
+    sw sp, 0(t6)
+    la t6, exception_test_magic_x1
+    sw x1, 0(t6)
     la x3,  0x33333333
     la x4,  0x44444444
     la x5,  0x55555555
@@ -115,13 +120,7 @@ exception_test:
     # (This is for MIT Secure Hardware Design, other behavior would likely
     # be desired for other use cases)
 
-    # First, check the stack (x2) is unchanged
-    # ASSUMPTION: exception handler doesn't change CSR_UNUSED_BY_OS
-    # Simultaneously, save x1 to check later
-    # x1 <- CSR_UNUSED_BY_OS (contains pre-exception x2)
-    # CSR_UNUSED_BY_OS <- x1
-    csrrw x1, CSR_UNUSED_BY_OS, x1
-    bne x1, x2, _exception_test_fail
+    # Avoid using t6 (x31) for addresses until x31…x3 are verified below.
 
     # Check registers x3-x31
     la x1, 0x33333333
@@ -183,8 +182,14 @@ exception_test:
     la x1, 0x31313131
     bne x1, x31, _exception_test_fail
 
+    # Stack pointer unchanged (saved before trap).
+    la t6, exception_test_saved_sp
+    lw x1, 0(t6)
+    bne x1, x2, _exception_test_fail
+
     # Now, go back and check x1
-    csrr x1, CSR_UNUSED_BY_OS
+    la t6, exception_test_magic_x1
+    lw x1, 0(t6)
     la x3, 0x11111111
     bne x1, x3, _exception_test_fail
 
