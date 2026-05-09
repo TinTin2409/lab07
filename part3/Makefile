@@ -51,10 +51,13 @@ DEPS := $(OBJS:.o=.d)
 
 print-%  : ; @echo $* = $($*)
 
-CFLAGS := -g -march=rv32i_zicsr -mabi=ilp32 -ffreestanding -nostdlib -fno-plt -fno-pic -MMD -O0 -c
+# EXTRA_CFLAGS only for C/asm_offsets (e.g. -DPART3_TRAP_TRACE). Assembly .s must not get stray -D to avoid assembler issues.
+BASE_CFLAGS := -g -march=rv32i -mabi=ilp32 -ffreestanding -nostdlib -fno-plt -fno-pic -MMD -O0 -c
+EXTRA_CFLAGS ?=
+CFLAGS := $(BASE_CFLAGS) $(EXTRA_CFLAGS)
 CXXFLAGS := $(CFLAGS)
-ASFLAGS  := $(CFLAGS)
-LDFLAGS1 := -g -march=rv32i_zicsr -mabi=ilp32 -ffreestanding -nostdlib -fno-plt -fno-pic
+ASFLAGS  := $(BASE_CFLAGS)
+LDFLAGS1 := -g -march=rv32i -mabi=ilp32 -ffreestanding -nostdlib -fno-plt -fno-pic
 LDFLAGS2 := -O0 -static-libgcc -lgcc
 
 $(TARGET_MEM): $(TARGET_BIN)
@@ -74,7 +77,7 @@ $(TARGET_ELF): $(OBJS) Makefile linker.ld
 	@echo "  \033[1;32mCC\033[0m $@"
 
 %.o: %.s $(GENERATOR_RESULTS)
-	@$(AS) $(CFLAGS) -o $@ $<
+	@$(AS) $(ASFLAGS) -o $@ $<
 	@echo "  \033[1;32mAS\033[0m $@"
 
 .PHONY: clean

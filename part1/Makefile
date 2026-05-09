@@ -51,10 +51,10 @@ DEPS := $(OBJS:.o=.d)
 
 print-%  : ; @echo $* = $($*)
 
-CFLAGS := -g -march=rv32i_zicsr -mabi=ilp32 -ffreestanding -nostdlib -fno-plt -fno-pic -MMD -O0 -c
+CFLAGS := -g -march=rv32i -mabi=ilp32 -ffreestanding -nostdlib -fno-plt -fno-pic -MMD -O0 -c
 CXXFLAGS := $(CFLAGS)
 ASFLAGS  := $(CFLAGS)
-LDFLAGS1 := -g -march=rv32i_zicsr -mabi=ilp32 -ffreestanding -nostdlib -fno-plt -fno-pic
+LDFLAGS1 := -g -march=rv32i -mabi=ilp32 -ffreestanding -nostdlib -fno-plt -fno-pic
 LDFLAGS2 := -O0 -static-libgcc -lgcc
 
 $(TARGET_MEM): $(TARGET_BIN)

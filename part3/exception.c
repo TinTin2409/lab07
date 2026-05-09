@@ -57,6 +57,16 @@ void exception_handler(uint32_t mcause, saved_regs_t *saved_regs) {
 
     g_last_trap_mcause = mcause;
 
+#ifdef PART3_TRAP_TRACE
+    {
+        static unsigned trace_count;
+        if (trace_count < 32u) {
+            printf("[trap] #%u mcause=0x%X\n", trace_count, mcause);
+            trace_count++;
+        }
+    }
+#endif
+
     /*
      * Only PSP external / local IPI are expected to use the mcause interrupt form for
      * real delivery. Anything else—even if RTL sets the interrupt MSB wrongly—still has

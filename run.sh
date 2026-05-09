@@ -43,7 +43,7 @@ cp $CSR_MEMFILE sim/obj_dir/csr_file.mem
 cd sim/obj_dir
 
 if [[ -z "$2" ]]; then
-./Vpsp $2
+./Vpsp
 else
 if [[ -z $SHD_DEBUG_PORT ]]; then
     echo "Error: You need to set the debug port in debug.sh!"
