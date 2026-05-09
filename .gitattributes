@@ -1,0 +1,2 @@
+# Shell/runner scripts must use LF so bash on W/Git does not choke on CRLF.
+*.sh text eol=lf
